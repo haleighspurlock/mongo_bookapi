@@ -1,31 +1,24 @@
 import express from 'express'
 import bodyParser from 'body-parser'
-import { init, addBook, deleteBook, getBook, updateBook } from './dal/index.js';
+import { init, addBook, deleteBook, getBook, updateBook, listBooks } from './dal/index.js';
 const app = express()
 app.use(bodyParser.urlencoded(({ extended: true })));
 app.use(bodyParser.json());
 const port = 3000
 
-app.get('/', async (req, res) => {
-  await init()
-  res.send('hello')
-})
-
 // returns array with all books
 //example: [All the Dangerous Things, The Book of Cold Cases, The Collective, Dark Matter]
-app.get('/books', (req, res) => {
+app.get('/books', async (req, res) => {
+  const books = await listBooks()
   res.statusCode=200
   res.send(books)
 })
 
-app.get('/books/:id', (req, res) => {
+app.get('/books/:id', async (req, res) => {
   const id = req.params.id
   try {
-    getBook(id)
-    res.send({
-      "status_code": 200,
-      "status_message": "Success."
-    })
+    const book = await getBook(id)
+    res.send(book)
   } catch (err) {
     res.send({
       "status_code": 404,
@@ -34,18 +27,18 @@ app.get('/books/:id', (req, res) => {
   }
 })
 
-app.post('/books', (req, res) => {
-  addBook(req.body)
+app.post('/books', async (req, res) => {
+  await addBook(req.body)
   res.send({
     "status_code": 200,
     "status_message": "Success."
   })
 })
 
-app.put('/books/:id', (req, res) => {
-  const id = req.params.id
+app.put('/books/:id', async (req, res) => {
+ const id = req.params.id
   try {
-    updateBook(id)
+    await updateBook(id)
 
     res.send({
       "status_code": 200,
@@ -59,10 +52,10 @@ app.put('/books/:id', (req, res) => {
   }
 })
 
-app.delete('/books/:id', (req, res) => {
+app.delete('/books/:id', async (req, res) => {
   const id = req.params.id
   try{
-    deleteBook(id)
+    await deleteBook(id)
     res.send({
       "status_code": 200,
       "status_message": "Success."
@@ -75,6 +68,7 @@ app.delete('/books/:id', (req, res) => {
   }
 })
 
-app.listen(port, () => {
+app.listen(port, async () => {
+  await init()
   console.log(`Example app listening on port ${port}`)
 })
